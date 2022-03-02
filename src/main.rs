@@ -1,7 +1,10 @@
+extern crate serde_derive;
+extern crate serde;
+extern crate serde_json;
 
 // use integer times for now
 //changing names is complex
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone,serde_derive::Serialize, serde_derive::Deserialize)]
 struct Event{
     priority: i32, //eventually can become a trait/enum or something
     time_start: i64, //going to make everything inclusive for now, dw abt it
@@ -53,7 +56,9 @@ impl Schedule{
             time_used:0
         }
     }
-    //cloning everything for now, eventually refs would be preferred
+
+    //get event at a specific time
+    //eventually consider a data struct for faster reads(multimap? binarysearch/BST thing?)
     fn get_event(&self,i:i64)->Option<Event>{
         for e in &self.events{
             if e.time_start <= i && i <= e.time_end {
@@ -113,10 +118,17 @@ impl Schedule{
                 self.time_used+=e.duration;
                 return true;
             }
-            println!("Bad packing, can't find space");
+            println!("Bad packing, can't find opening");
             false
         }
     }
+    //probably should create a JSON out for the whole Event cluster, nothing else needed I think
+    fn toJSONString(&self)->String{
+        serde_json::to_string(&self.events).unwrap()
+        //should have a type check on here, but I'll implement later
+    }
+
+    //for debugging
     fn print_all(&self)->(){
         println!();
         println!("Printing Schedule:");
@@ -141,6 +153,8 @@ fn main(){
     }
 
     sched.print_all();
+    println!("Output JSON:");
+    println!("{}",sched.toJSONString());
     //a bit messy, need to think more about best ways
     // println!("{}",e_3.unwrap().name);
     // assert!(*e_3.unwrap().name == *"Running");
