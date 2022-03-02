@@ -62,6 +62,8 @@ impl Schedule{
         }
         None
     }
+
+    //wonder if I ran refactor for shortness later
     fn add_event(&mut self,e:&EventRequest)->bool{
         //don't include priority yet, just insert where possible
         //go through a scan for openings to insert
@@ -73,6 +75,7 @@ impl Schedule{
                     time_end:e.duration,
                     name:e.name
                 });
+                self.time_used+=e.duration;
                 return true;
             }
             else{
@@ -80,13 +83,15 @@ impl Schedule{
             }
         }
         //if there isn't space for antyhing, skip
-        if self.overall_end-self.overall_start-self.time_used>=e.duration{
+        if self.overall_end-self.overall_start-self.time_used<=e.duration{
+            println!("No Space");
             false
         }
         else{
-            //fault with sub heres
+            //fault with sub here
+            //need to think about edge cases, check end as well
             for i in 0..self.events.len()-1{
-                if self.events[i].time_end -self.events[i+1].time_start > e.duration{
+                if self.events[i].time_end -self.events[i+1].time_start >= e.duration{
                     self.events.insert(i,Event{
                         priority:e.priority,
                         time_start:self.events[i].time_end+1,
@@ -97,12 +102,25 @@ impl Schedule{
                     return true;
                 }
             }
+            //extra check for end
+            if self.overall_end - self.events[self.events.len()-1].time_end>=e.duration{
+                self.events.push(Event{
+                    priority:e.priority,
+                    time_start:self.events[self.events.len()-1].time_end+1,
+                    time_end:self.events[self.events.len()-1].time_end+1+e.duration,
+                    name:e.name
+                });
+                self.time_used+=e.duration;
+                return true;
+            }
+            println!("Bad packing, can't find space");
             false
         }
     }
     fn print_all(&self)->(){
         println!();
         println!("Printing Schedule:");
+        println!("Time used: {}",self.time_used);
         for e in &self.events{
             println!("Name: {} Priority: {} Time Start: {} Time End: {}",e.name,e.priority,e.time_start,e.time_end);
         }
@@ -121,8 +139,6 @@ fn main(){
     if !sched.add_event(&sleeping){
         println!("Failed setting sleeping");
     }
-    let e_3 = sched.get_event(3);
-    let e_21 = sched.get_event(20);
 
     sched.print_all();
     //a bit messy, need to think more about best ways
