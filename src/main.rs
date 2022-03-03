@@ -139,6 +139,7 @@ impl Schedule{
     }
 }
 
+//probably should package these above lines into a module or something before copying back and forth
 fn main(){
     println!("Hello, world!");
     let mut sched = Schedule::new(300);
